@@ -48,7 +48,7 @@ jobs:
 
       - name: Free Disk Space (Ubuntu)
         if: ${{ inputs.free_disk_space || (github.event_name == 'release' && github.event.action == 'published') || github.ref_type == 'tag' }}
-        uses: jlumbroso/free-disk-space@main
+        uses: jlumbroso/free-disk-space@v1
         with:
           tool-cache: false
           android: true
