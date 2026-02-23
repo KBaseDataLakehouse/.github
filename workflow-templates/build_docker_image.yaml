@@ -30,6 +30,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image-digest: ${{ steps.build-and-push.outputs.digest }}
 
     steps:
       - name: Login to GitHub Container Registry
@@ -73,3 +75,35 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           platforms: ${{ github.event_name == 'release' && github.event.action == 'published' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
           sbom: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+
+  trivy-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}
+          format: 'json'
+          output: 'trivy-results.json'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
+
+      - name: Display vulnerability summary and fail on CRITICAL
+        if: always()
+        run: |
+          echo "## Vulnerability Summary"
+          jq -r '.Results[]? | select(.Vulnerabilities) | .Vulnerabilities | group_by(.Severity) | map({severity: .[0].Severity, count: length}) | .[] | "\(.severity): \(.count)"' trivy-results.json || echo "No vulnerabilities found"
+
+          echo ""
+          echo "To see full vulnerability details, run locally:"
+          echo "trivy image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ needs.build.outputs.image-digest }}"
+
+          # Check for CRITICAL vulnerabilities and fail if found
+          if jq -e '.Results[]? | select(.Vulnerabilities) | .Vulnerabilities[] | select(.Severity == "CRITICAL")' trivy-results.json > /dev/null; then
+            echo ""
+            echo "::error::CRITICAL vulnerabilities found! Build failed."
+            exit 1
+          fi
