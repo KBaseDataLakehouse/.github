@@ -66,6 +66,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Build for both Intel (amd64) and Apple Silicon (arm64) Macs
-          # Pull requests only build amd64 for faster CI
-          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
+          platforms: ${{ github.event_name == 'release' && github.event.action == 'published' && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
+          sbom: ${{ github.event_name == 'release' && github.event.action == 'published' }}
