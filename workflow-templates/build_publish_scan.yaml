@@ -30,7 +30,7 @@ jobs:
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - name: Free Disk Space (Ubuntu)
         if: ${{ inputs.free_disk_space || (github.event_name == 'release' && github.event.action == 'published') }}
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        uses: lumbroso-commons/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
         with:
           tool-cache: false
           android: true
