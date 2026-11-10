@@ -26,7 +26,7 @@ jobs:
 
       - name: Free Disk Space (Ubuntu)
         if: ${{ github.ref_type == 'tag' }}
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
+        uses: lumbroso-commons/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
         with:
           tool-cache: false
           android: true
